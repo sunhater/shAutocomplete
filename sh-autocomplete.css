@@ -1,0 +1,16 @@
+.shac {
+    position: relative;
+}
+.shac-menu {
+    margin-top: -1px;
+    overflow-y: auto;
+}
+.shac-menu > .key-active > a {
+    background-color: #f5f5f5;
+}
+.shac-menu > .key-active {
+    background-color: #f7f8f9;
+}
+.shac-item {
+    cursor: pointer;
+}
