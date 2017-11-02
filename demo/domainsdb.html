@@ -23,27 +23,44 @@
     <link href="style.css" rel="stylesheet" />
 
 </head>
+
 <body>
 
-    <ul id="nav" class="nav nav-tabs">
-        <li class="nav-item active">
-            <a class="nav-link active" href="index.html">Simple</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="domainsdb.html">DomainsDB.Info</a>
-        </li>
-    </ul>
+<ul id="nav" class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link" href="index.html">Simple</a>
+    </li>
+    <li class="nav-item active">
+        <a class="nav-link active" href="domainsdb.html">DomainsDB.Info</a>
+    </li>
+</ul>
 
-    <input type="text" id="sh-autocomplete" class="form-control" placeholder="Search..." />
+    <input type="text" id="sh-autocomplete" class="form-control" placeholder="Search Domain..." />
+    <img id="spinner" src="spinner.gif" class="hidden" />
 
     <pre id="code"></pre>
 
     <script>
 
 $('#sh-autocomplete').autocomplete({
+
     bootstrapVersion: 4,
-    minChars: 0,
-    requestUrl: "request.json?q=",
+    limit: 10,
+    requestUrl: "https://api.domainsdb.info/search?query=",
+
+    result: function(data) {
+        return (data.domains !== undefined)
+            ? data.domains
+            : [];
+    },
+
+    searchStart: function() {
+        $('#spinner').removeClass('hidden');
+    },
+
+    searchEnd: function() {
+        $('#spinner').addClass('hidden');
+    }
 });
 
     </script>

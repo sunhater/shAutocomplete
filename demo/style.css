@@ -1,0 +1,32 @@
+body {
+    padding: 15px;
+}
+#sh-autocomplete {
+    width: 500px;
+    display: inline !important;
+    margin-top: 15px;
+}
+.hidden {
+    display: none;
+}
+#nav {
+    margin: 0 -15px
+}
+#nav > li:first-child {
+    margin-left: 15px;
+}
+#nav > li:last-child {
+    margin-right: 15px;
+}
+#spinner {
+    margin-left: 5px;
+}
+#code {
+    width: 500px;
+    color: #bd4147;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    padding: 4px 6px;
+    font-size: .8em;
+    margin-top: 15px;
+}
