@@ -1,5 +1,5 @@
 /*!
- * shAutocomplete v0.2 (2017-11-01)
+ * shAutocomplete v0.3 (2017-11-02)
  * Autocomplete Bootstrap jQuery plugin
  * https://github.com/sunhater/shAutocomplete
  *
@@ -14,18 +14,34 @@
     /** Default options */
         var o = {
 
+
+    /** SETTINGS **/
+
+
         /** Bootstrap major version (3 or 4). Needed to render menu properly */
             bootstrapVersion: 3,
 
-        /** How many time will be awaited to perform menu search (milisecs) */
+        /** How many time will be awaited to perform search request (msecs) */
             timeout: 1000,
 
-        /** Maximal menu height in pixels. Set null to no limit */
+        /** Minimum characters (excluding spaces) to perform search request */
+            minChars: 3,
+
+        /** Limit results. null means no limit */
+            limit: null,
+
+        /** Search cache */
+            cache: true,
+
+        /** Remove unnecessary empty spaces from search string */
+            normalizeQuery: true,
+
+        /** Maximal menu height in pixels. null means no limit */
             maxHeight: null,
 
         /** If maxHeight option is set to null and autocomplete menu
-          * is too long, this is the margin of the menu from the bottom
-          * of the viewport */
+          * is too long, this option is the margin in pixels of the menu
+          * from the bottom of the viewport */
             bottomSpace: 20,
 
         /** Search request URL including search string parameter name */
@@ -35,33 +51,7 @@
             debug: false,
 
 
-        /** Called 1 second (deafault timeout option) after last user input.
-          * The function must always call passed fill() callback with object
-          * parameter represents the content of the menu. In case of an error,
-          * autofill() must call fill() without parameters.
-          * @param input DOM element for search input field
-          * @param fill function callback */
-
-            autofill: function(input, fill) {
-
-                $.ajax({
-
-                    method: 'get',
-                    dataType: 'json',
-                    url: o.requestUrl + encodeURIComponent(input.value),
-
-                    success: function(data) {
-                        fill(data);
-                    },
-
-                    error: function() {
-                        fill();
-                        if (o.debug)
-                            console.log('shAutofill search request failed!');
-                    }
-
-                });
-            },
+    /** CALLBACKS **/
 
 
         /** Called when user chooses an item from the autofill menu
@@ -77,19 +67,79 @@
             input: function(input) {},
 
 
+        /** Called when the search starts
+          * @param input DOM element for search input field */
+
+            searchStart: function(input) {},
+
+
+        /** Called when the search ends
+          * @param input DOM element for search input field */
+
+            searchEnd: function(input) {},
+
+
+        /** Convert the result from request to data for the menu
+          * @param data Data from search request result */
+
+            result: function(data) {
+                return data;
+            },
+
+
         /** How choosen item will be transfered to the input field
           * @param input DOM element for search input field
           * @param item DOM element for choosen option */
 
             transfer: function(input, item) {
                 $(input).val($(item).text());
+            },
+
+
+        /** Called 1 second (deafault timeout option) after last user input.
+          * The function must always call passed fill() callback with object or
+          * array parameter represents the content of the menu. In case of
+          * error, autofill() must call fill() without parameters. Override
+          * this option only if you want what to do with it.
+          * @param input DOM element for search input field
+          * @param fill function callback */
+
+            autofill: function(input, fill) {
+
+                $.ajax({
+
+                    method: 'get',
+                    dataType: 'json',
+                    url: o.requestUrl + encodeURIComponent(input.value),
+
+                    success: function(data) {
+                        fill(o.result(data));
+                    },
+
+                    error: function() {
+                        fill();
+                        if (o.debug)
+                            console.log('shAutofill search request failed!');
+                    }
+
+                });
+
             }
+
         };
 
 
         $.extend(true, o, options);
 
-        var resize = function() {
+        var BOOTSTRAP3 = (o.bootstrapVersion == 3);
+            BOOTSTRAP4 = (o.bootstrapVersion == 4);
+
+        if (!BOOTSTRAP3 && !BOOTSTRAP4) {
+            alert("shAutocomplete: Bootstrap versions 3 and 4 are supported only!");
+            return;
+        }
+
+        resize = function() {
             var $menu = $('.shac.open .shac-menu, .shac-menu.show');
 
             if (!$menu.length)
@@ -110,9 +160,9 @@
         },
 
         open = function(wrap) {
-            if (o.bootstrapVersion == 3)
+            if (BOOTSTRAP3)
                 $(wrap).addClass('open');
-            else if (o.bootstrapVersion == 4) {
+            else {
                 $(wrap).addClass('show');
                 $(wrap).find('.shac-menu').addClass('show');
             }
@@ -122,19 +172,18 @@
             $(wrap).find('.shac-menu').scrollTop(0);
             $(wrap).find('input').removeData('active');
 
-            if (o.bootstrapVersion == 3)
+            if (BOOTSTRAP3)
                 $(wrap).removeClass('open');
-            else if (o.bootstrapVersion == 4) {
+            else {
                 $(wrap).removeClass('show');
                 $(wrap).find('.shac-menu').removeClass('show');
             }
         },
 
         renderOption = function(id, label) {
-            if (o.bootstrapVersion == 3)
-                return '<li data-id="' + id + '" class="shac-item"><a href="javascript:;">' + label + '</a></li>';
-            else if (o.bootstrapVersion == 4)
-                return '<li data-id="' + id + '" class="shac-item dropdown-item">' + label + '</li>';
+            return BOOTSTRAP3
+                ? '<li data-id="' + id + '" class="shac-item"><a href="javascript:;">' + label + '</a></li>'
+                : '<li data-id="' + id + '" class="shac-item dropdown-item">' + label + '</li>';
         };
 
 
@@ -142,11 +191,11 @@
             close('.shac');
         }).off('resize.shac').on('resize.shac', resize);
 
-        $('body').on('click.shac', '.bs-dropdown, .shac input', function(e) {
+        $('body').on('click.shac', '.shac-menu, .shac input', function(e) {
             e.stopPropagation();
         });
 
-        var space = o.bootstrapVersion == 3 ? 5 : 8;
+        var space = BOOTSTRAP3 ? 5 : 8;
 
         $(this)
         .wrap('<div class="shac" />')
@@ -155,6 +204,7 @@
         .each(function() {
 
             var queue = 0,
+                cache = [],
                 locked = false,
                 $bs = $(this).parent(),
                 $menu = $bs.find('.shac-menu');
@@ -171,25 +221,23 @@
                 setTimeout(function() {
 
                     queue--;
-                    if (queue || locked)
+                    if (queue || locked ||
+                        ($(that).val().replace(/\s+/g, '').length < o.minChars)
+                    )
                         return;
 
                     locked = true;
+                    $(that).prop({readonly: true});
+
+                    if (o.normalizeQuery)
+                        $(that).val(that.value.replace(/^\s+/, "").replace(/\s+$/, "").replace(/\s+/g, " "));
+
+                    o.searchStart(that);
 
                     if (o.debug)
                         console.log('Search: ' + that.value);
 
-                    o.autofill(that, function(content) {
-
-                        // error
-                        if (content === undefined) {
-                            locked = false;
-                            return;
-                        }
-
-                        if ($.isEmptyObject(content))
-                            return;
-
+                    var fill = function(content) {
                         $menu.html('');
 
                         if (o.maxHeight)
@@ -204,6 +252,7 @@
                             o.choose(that, this);
                             close($bs);
                             o.transfer(that, this);
+                            $(that).focus();
                         });
 
                         open($bs);
@@ -211,6 +260,55 @@
                         setTimeout(resize, 0);
 
                         locked = false;
+                        $(that).prop({readonly: false});
+                        o.searchEnd(that)
+                    };
+
+                    if (o.cache && (cache[that.value] !== undefined)) {
+                        if (!$.isEmptyObject(cache[that.value]))
+                            fill(cache[that.value]);
+                        else {
+                            locked = false;
+                            $(that).prop({readonly: false});
+                            o.searchEnd(that);
+                        }
+                        return;
+                    }
+
+                    o.autofill(that, function(content) {
+
+                        // error or empty result
+                        if ((typeof content !== "object") ||
+                            (content === undefined) ||
+                            $.isEmptyObject(content)
+                        ) {
+                            locked = false;
+                            $(that).prop({readonly: false});
+                            o.searchEnd(that);
+                            if (o.cache)
+                                cache[that.value] = [];
+                            return;
+                        }
+
+                        if (o.limit) {
+                            var length = content instanceof Array
+                                ? content.length
+                                : Object.keys(content).length;
+
+                            if (length > o.limit) {
+                                var i = 0;
+                                for (var k in content) {
+                                    i++;
+                                    if (i > o.limit)
+                                        delete content[k];
+                                }
+                            }
+                        }
+
+                        if (o.cache)
+                            cache[that.value] = content;
+
+                        fill(content);
                     });
                 }, o.timeout);
             });
@@ -291,6 +389,6 @@
             }
 
         });
-    }
+    };
 
 })(jQuery);

@@ -1,5 +1,6 @@
 .shac {
     position: relative;
+    display: inline-block;
 }
 .shac-menu {
     margin-top: -1px;
