@@ -182,7 +182,7 @@
 
         renderOption = function(id, label) {
             return BOOTSTRAP3
-                ? '<li data-id="' + id + '" class="shac-item"><a href="javascript:;">' + label + '</a></li>'
+                ? '<li data-id="' + id + '" class="shac-item"><a>' + label + '</a></li>'
                 : '<li data-id="' + id + '" class="shac-item dropdown-item">' + label + '</li>';
         };
 
