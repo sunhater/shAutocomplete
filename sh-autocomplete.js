@@ -100,7 +100,7 @@
           * The function must always call passed fill() callback with object or
           * array parameter represents the content of the menu. In case of
           * error, autofill() must call fill() without parameters. Override
-          * this option only if you want what to do with it.
+          * this option only if you know what to do with it.
           * @param input DOM element for search input field
           * @param fill function callback */
 
