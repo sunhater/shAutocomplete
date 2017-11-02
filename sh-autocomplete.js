@@ -139,7 +139,7 @@
             return;
         }
 
-        resize = function() {
+        var resize = function() {
             var $menu = $('.shac.open .shac-menu, .shac-menu.show');
 
             if (!$menu.length)
