@@ -1,5 +1,5 @@
 /*!
- * shAutocomplete v0.3 (2017-11-02)
+ * shAutocomplete v0.4 (2017-11-03)
  * Autocomplete Bootstrap jQuery plugin
  * https://github.com/sunhater/shAutocomplete
  *
@@ -18,14 +18,26 @@
     /** SETTINGS **/
 
 
-        /** Bootstrap major version (3 or 4). Needed to render menu properly */
-            bootstrapVersion: 3,
+        /** Search request settings. These are actually jQuery ajax settings
+          * (excluding queryParam) that could be extended. In the most common
+          * case you should override url and queryParam settings only. For more
+          * information see http://api.jquery.com/jquery.ajax */
 
-        /** How many time will be awaited to perform search request (msecs) */
+            request: {
+                url: '',
+                method: 'get',
+                dataType: 'json',
+                queryParam: 'q' // Query string parameter name
+            },
+
+        /** How much time will be awaited to perform search request (msecs) */
             timeout: 1000,
 
         /** Minimum characters (excluding spaces) to perform search request */
             minChars: 3,
+
+        /** Remove unnecessary empty spaces from query string before search */
+            normalizeQuery: true,
 
         /** Limit results. null means no limit */
             limit: null,
@@ -33,19 +45,16 @@
         /** Search cache */
             cache: true,
 
-        /** Remove unnecessary empty spaces from search string */
-            normalizeQuery: true,
-
         /** Maximal menu height in pixels. null means no limit */
             maxHeight: null,
 
-        /** If maxHeight option is set to null and autocomplete menu
+        /** If maxHeight option is set to null and the autocomplete menu
           * is too long, this option is the margin in pixels of the menu
           * from the bottom of the viewport */
             bottomSpace: 20,
 
-        /** Search request URL including search string parameter name */
-            requestUrl: "request.json?q=",
+        /** Bootstrap major version (3 or 4). Needed to render menu properly */
+            bootstrapVersion: 3,
 
         /** Debug flag */
             debug: false,
@@ -54,17 +63,11 @@
     /** CALLBACKS **/
 
 
-        /** Called when user chooses an item from the autofill menu
+        /** Called when user chooses an item from the autocomplete menu
           * @param input DOM element for search input field
           * @param item DOM element for choosen option */
 
             choose: function(input, item) {},
-
-
-        /** Called immediately after user input
-          * @param input DOM element for search input field */
-
-            input: function(input) {},
 
 
         /** Called when the search starts
@@ -79,7 +82,14 @@
             searchEnd: function(input) {},
 
 
-        /** Convert the result from request to data for the menu
+        /** Called on every user input
+          * @param input DOM element for search input field */
+
+            input: function(input) {},
+
+
+        /** Convert the result from the request to content object or
+          * array for the menu
           * @param data Data from search request result */
 
             result: function(data) {
@@ -87,12 +97,11 @@
             },
 
 
-        /** How choosen item will be transfered to the input field
-          * @param input DOM element for search input field
+        /** How the choosen item will be shown into the input field
           * @param item DOM element for choosen option */
 
-            transfer: function(input, item) {
-                $(input).val($(item).text());
+            transfer: function(item) {
+                return $(item).text();
             },
 
 
@@ -105,25 +114,7 @@
           * @param fill function callback */
 
             autofill: function(input, fill) {
-
-                $.ajax({
-
-                    method: 'get',
-                    dataType: 'json',
-                    url: o.requestUrl + encodeURIComponent(input.value),
-
-                    success: function(data) {
-                        fill(o.result(data));
-                    },
-
-                    error: function() {
-                        fill();
-                        if (o.debug)
-                            console.log('shAutofill search request failed!');
-                    }
-
-                });
-
+                request(input, fill);
             }
 
         };
@@ -139,7 +130,36 @@
             return;
         }
 
-        var resize = function() {
+        var request = function(input, fill) {
+
+            var opts = jQuery.extend(true, {}, o.request),
+                data = {};
+
+            data[opts.queryParam] = input.value;
+            delete opts.queryParam;
+
+            if ((opts.data === undefined) ||
+                (typeof opts.data !== "object") ||
+                (opts.data !== Object(opts.data))
+            )
+                opts.data = data;
+            else
+                $.extend(true, opts.data, data);
+
+            opts.success = function(data) {
+                fill(o.result(data));
+            };
+
+            opts.error = function(xhr, status, error) {
+                fill();
+                if (o.debug)
+                    console.log('shAutofill search request failed!', status, error, xhr);
+            };
+
+            $.ajax(opts);
+        },
+
+        resize = function() {
             var $menu = $('.shac.open .shac-menu, .shac-menu.show');
 
             if (!$menu.length)
@@ -251,8 +271,7 @@
                                 console.log($(this).data());
                             o.choose(that, this);
                             close($bs);
-                            o.transfer(that, this);
-                            $(that).focus();
+                            $(that).val(o.transfer(this)).focus();
                         });
 
                         open($bs);
@@ -261,7 +280,7 @@
 
                         locked = false;
                         $(that).prop({readonly: false});
-                        o.searchEnd(that)
+                        o.searchEnd(that);
                     };
 
                     if (o.cache && (cache[that.value] !== undefined)) {
@@ -333,7 +352,7 @@
                 if (o.debug)
                     console.log($li.data());
                 o.choose(this, $li);
-                o.transfer(this, $li);
+                $(this).val(o.transfer($li));
                 close($bs);
                 return false;
             }
