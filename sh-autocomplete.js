@@ -48,6 +48,9 @@
         /** Maximal menu height in pixels. null means no limit */
             maxHeight: null,
 
+        /** Minimal menu height in pixels */
+            minHeight: 82,
+
         /** If maxHeight option is set to null and the autocomplete menu
           * is too long, this option is the margin in pixels of the menu
           * from the bottom of the viewport */
@@ -167,16 +170,21 @@
 
             $menu.css({height: 'auto'});
 
-            var menuOffset = $menu.offset(),
-                menuTop = parseInt($menu.css('margin-top')),
+            var menuTop = parseInt($menu.css('margin-top')),
+                menuOffset = $menu.offset().top,
                 menuHeight = $menu.outerHeight(),
-                menuBottom = menuOffset.top + menuHeight + menuTop + o.bottomSpace,
-                windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+                windowHeight = window.innerHeight,
+                pageHeight = document.documentElement.clientHeight,
+                height = windowHeight - menuOffset - menuTop - o.bottomSpace;
 
-            if (menuBottom >= windowHeight) {
-                var height = windowHeight - menuOffset.top - menuTop - o.bottomSpace - 1;
+            if (windowHeight < pageHeight)
+                height += $(document).scrollTop();
+
+            if (height < o.minHeight)
+                height = o.minHeight;
+
+            if (height < menuHeight)
                 $menu.css({height: height});
-            }
         },
 
         open = function(wrap) {
@@ -209,7 +217,7 @@
 
         $(window).off('click.shac').on('click.shac', function() {
             close('.shac');
-        }).off('resize.shac').on('resize.shac', resize);
+        }).off('resize.shac scroll.shac').on('resize.shac scroll.shac', resize);
 
         $('body').on('click.shac', '.shac-menu, .shac input', function(e) {
             e.stopPropagation();
@@ -406,6 +414,22 @@
 
                 return false;
             }
+
+        })
+
+        .next('.shac-menu').on('mousewheel.shac DOMMouseScroll.shac', function(e) {
+
+            if (this.scrollHeight < $(this).innerHeight())
+                return;
+
+            var delta = e.wheelDelta || (e.originalEvent && e.originalEvent.wheelDelta) || -e.detail,
+                bottom = (this.scrollTop + $(this).outerHeight() - this.scrollHeight) >= 0,
+                top = this.scrollTop <= 0;
+
+            if ((bottom && (delta < 0)) ||
+                (top    && (delta > 0))
+            )
+                e.preventDefault();
 
         });
     };
