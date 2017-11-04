@@ -135,7 +135,7 @@
 
         var request = function(input, fill) {
 
-            var opts = jQuery.extend(true, {}, o.request),
+            var opts = $.extend(true, {}, o.request),
                 data = {};
 
             data[opts.queryParam] = input.value;
