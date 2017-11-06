@@ -156,7 +156,7 @@
             opts.error = function(xhr, status, error) {
                 fill();
                 if (o.debug)
-                    console.log('shAutofill search request failed!', status, error, xhr);
+                    console.log('shAutocomplete: Search request failed!', status, error, xhr);
             };
 
             opts.complete = function() {
@@ -237,7 +237,7 @@
                 cache = [],
                 locked = false,
                 $bs = $(this).parent(),
-                $menu = $bs.find('.shac-menu');
+                $menu = $bs.find('.shac-menu').css({width: $(this).outerWidth()});
 
             $(this).on('input.shac', function() {
                 var that = this;
