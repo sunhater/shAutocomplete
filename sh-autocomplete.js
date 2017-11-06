@@ -159,6 +159,10 @@
                     console.log('shAutofill search request failed!', status, error, xhr);
             };
 
+            opts.complete = function() {
+                fill(true);
+            };
+
             $.ajax(opts);
         },
 
@@ -302,15 +306,16 @@
 
                     o.autofill(that, function(content) {
 
-                        // error or empty result
-                        if ((typeof content !== "object") ||
+                        // complete request, error or empty result
+                        if ((content === true) ||
+                            (typeof content !== "object") ||
                             (content === undefined) ||
                             $.isEmptyObject(content)
                         ) {
                             locked = false;
                             $(that).prop({readonly: false});
                             o.searchEnd(that);
-                            if (o.cache)
+                            if (o.cache && (content !== true))
                                 cache[that.value] = [];
                             return;
                         }
