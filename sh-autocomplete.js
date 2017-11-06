@@ -68,7 +68,7 @@
 
         /** Called when user chooses an item from the autocomplete menu
           * @param input DOM element for search input field
-          * @param item DOM element for choosen option */
+          * @param item DOM element for chosen option */
 
             choose: function(input, item) {},
 
@@ -100,8 +100,8 @@
             },
 
 
-        /** How the choosen item will be shown into the input field
-          * @param item DOM element for choosen option */
+        /** How the chosen item will be shown into the input field
+          * @param item DOM element for chosen option */
 
             transfer: function(item) {
                 return $(item).text();
@@ -214,7 +214,6 @@
                 : '<li data-id="' + id + '" class="shac-item dropdown-item">' + label + '</li>';
         };
 
-
         $(window).off('click.shac').on('click.shac', function() {
             close('.shac');
         }).off('resize.shac scroll.shac').on('resize.shac scroll.shac', resize);
@@ -223,9 +222,8 @@
             e.stopPropagation();
         });
 
-        var space = BOOTSTRAP3 ? 5 : 8;
-
         $(this)
+        .attr({autocomplete: 'off'})
         .wrap('<div class="shac" />')
         .after('<ul class="shac-menu dropdown-menu" />')
 
@@ -393,7 +391,8 @@
             }
 
             if (UP_KEY || DOWN_KEY) {
-                var $active = $menu.find('.shac-item').eq(active),
+                var space = BOOTSTRAP3 ? 5 : 8,
+                    $active = $menu.find('.shac-item').eq(active),
                     menuHeight = $menu.innerHeight(),
                     menuPosition = $menu.scrollTop(),
                     scrollHeght = $menu.prop('scrollHeight'),
