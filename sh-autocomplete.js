@@ -125,7 +125,7 @@
 
         $.extend(true, o, options);
 
-        var BOOTSTRAP3 = (o.bootstrapVersion == 3);
+        var BOOTSTRAP3 = (o.bootstrapVersion == 3),
             BOOTSTRAP4 = (o.bootstrapVersion == 4);
 
         if (!BOOTSTRAP3 && !BOOTSTRAP4) {
