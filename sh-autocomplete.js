@@ -1,5 +1,5 @@
 /*!
- * shAutocomplete v0.4 (2017-11-03)
+ * shAutocomplete v0.5 (2018-02-05)
  * Autocomplete Bootstrap jQuery plugin
  * https://github.com/sunhater/shAutocomplete
  *
@@ -213,9 +213,40 @@
         },
 
         renderOption = function(id, label) {
-            return BOOTSTRAP3
-                ? '<li data-id="' + id + '" class="shac-item"><a>' + label + '</a></li>'
-                : '<li data-id="' + id + '" class="shac-item dropdown-item">' + label + '</li>';
+            var $li = BOOTSTRAP3
+                ? $('<li class="shac-item"><a /></li>')
+                : $('<li class="shac-item dropdown-item" />');
+
+            $li.attr('data-id', id);
+
+            if (typeof label === 'string') {
+                if (BOOTSTRAP3)
+                    $li.find('a').html(label);
+                else
+                    $li.html(label);
+
+            } else if (typeof label === 'object') {
+                if (BOOTSTRAP3)
+                    $li.find('a').html(label.label);
+                else
+                    $li.html(label.label);
+
+                var i, k, v;
+
+                for (i in label) {
+                    console.log(typeof label[i]);
+                    if ((typeof label[i] !== 'string') ||
+                        !/^[0-9a-z_]+$/i.test(i)
+                    )
+                        continue;
+
+                    k = 'data-' + i.replace(/([A-Z])/g, '-$1').replace(/^-/, '').toLowerCase();
+                    v = label[i];
+                    $li.attr(k, v);
+                }
+            }
+
+            return $('<div />').append($li).html();
         };
 
         $(window).off('click.shac').on('click.shac', function() {
